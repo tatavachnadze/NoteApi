@@ -1,0 +1,46 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: noteapi-postgres
+    environment:
+      POSTGRES_DB: noteapi_dev
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: devpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - noteapi-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dev -d noteapi_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Note API Application
+  noteapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: noteapi-app
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:80
+      ConnectionStrings__DefaultConnection: "Host=postgres;Database=noteapi_dev;Username=dev;Password=devpassword"
+    ports:
+      - "5000:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - noteapi-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  noteapi-network:
+    driver: bridge
