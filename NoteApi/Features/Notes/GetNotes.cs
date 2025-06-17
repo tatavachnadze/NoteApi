@@ -36,14 +36,14 @@ public static class GetNotes
                .WithSummary("Get all notes with pagination and filtering");
 
         static async Task<IResult> Handle(
-            int page,
-            int pageSize,
-            string? search,
-            string? tags,
             ClaimsPrincipal user,
             AppDbContext db,
             Microsoft.Extensions.Logging.ILogger logger,
-            CancellationToken ct)
+            CancellationToken ct, 
+            int page = 1,
+            int pageSize = 10,
+            string? search = null,
+            string? tags = null)
         {
             var userId = user.GetUserId();
             var query = new Query(page, pageSize, search, tags);
